@@ -13,8 +13,10 @@ A web application to visualize translation progress of [CakePHP/docs](https://gi
 ## Local Development
 This repository provides [Dockerfile](./Dockerfile).
 
-- To setup, run `docker build -t motooka/cake-doc-translate-progress .`
+- To set up, run `docker build -t motooka/cake-doc-translate-progress .`
+	- you should run this again if `Dockerfile` or some other files are modified.
 - To run locally, run `docker run --detach --rm --name cake-doc-translate-progress -p 8000:80 -v $(pwd)/:/repository motooka/cake-doc-translate-progress`
 - To stop running, run `docker stop cake-doc-translate-progress`
 	- if you can't wait 10 seconds, you can also use `kill`
 - To use shell, run `docker run --rm -it -v $(pwd)/:/repository motooka/cake-doc-translate-progress bash`
+- To install package updates and run database(SQLite3) migration after set up, run `docker run --rm -it -v $(pwd)/:/repository motooka/cake-doc-translate-progress /composer-install.sh`

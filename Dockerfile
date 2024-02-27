@@ -17,6 +17,9 @@ RUN apt-get install -y sqlite3 php8.3-sqlite3 git
 # for debugging
 RUN apt-get install -y vim less sqlite3
 
+# set zend assersion to development mode : Apache on Ubunts comes with production mode by default.
+# without this setting, CakePHP warns if it is running on debug mode.
+RUN sed -i.bak -e 's/^zend.assertions.*/zend.assertions = 1/' /etc/php/8.3/apache2/php.ini
 
 # composer
 ENV COMPOSER_ALLOW_SUPERUSER 1
