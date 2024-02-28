@@ -5,6 +5,7 @@ namespace App\Model;
 
 use App\Model\Entity\File;
 use App\Model\Table\FilesTable;
+use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 
 class GitRepo
@@ -13,26 +14,100 @@ class GitRepo
     const REPO_DIR = self::REPO_DIR_PARENT . 'repo';
     const REPO_GIT_URL = 'https://github.com/cakephp/docs.git';
 
-    public static function clone() {
-        // TODO: implement
+    public static function clone(): void {
+        if(file_exists(self::REPO_DIR)) {
+            throw new \Exception('already cloned');
+        }
+        $cwd = getcwd();
+        self::_chdirOrFail(self::REPO_DIR_PARENT);
+
+        $repoURL = self::REPO_GIT_URL;
+        $repoDIR = self::REPO_DIR;
+        $command = "git clone \"{$repoURL}\" \"{$repoDIR}\"";
+        $commandOutput = [];
+        $commandResultCode = 0;
+        self::_exec($command, $commandOutput, $commandResultCode);
+        self::_chdirOrFail($cwd);
     }
 
-    public static function pull() {
-        // TODO: implement
+    public static function pull(): void {
+        $cwd = getcwd();
+        self::_chdirOrFail(self::REPO_DIR);
+        $command = "git pull";
+        $commandOutput = [];
+        $commandResultCode = 0;
+        self::_exec($command, $commandOutput, $commandResultCode);
+        self::_chdirOrFail($cwd);
     }
 
-    public static function checkoutBranch(string $branch) {
-        // TODO: implement
+    public static function getCurrentBranch(): string {
+        $cwd = getcwd();
+        self::_chdirOrFail(self::REPO_DIR);
+        $command = "git rev-parse --abbrev-ref HEAD";
+        $commandOutput = [];
+        $commandResultCode = 0;
+        self::_exec($command, $commandOutput, $commandResultCode);
+        self::_chdirOrFail($cwd);
+        if(count($commandOutput) <= 0) {
+            throw new \Exception('failed to get current branch');
+        }
+        return $commandOutput[0];
     }
 
+    public static function checkoutBranch(string $branch): void {
+        $cwd = getcwd();
+        self::_chdirOrFail(self::REPO_DIR);
+        $command = "git checkout \"$branch\"";
+        $commandOutput = [];
+        $commandResultCode = 0;
+        self::_exec($command, $commandOutput, $commandResultCode);
+        self::_chdirOrFail($cwd);
+    }
+
+    /**
+     * executes "git log -1" command. The caller MUST change the current directory to the repo before call this function.
+     * @param string $filePath
+     * @return string[]
+     * @throws \Exception
+     */
     private static function _gitLog(string $filePath): array {
-        // TODO: execute "git log -1" command
+        // format : https://git-scm.com/docs/pretty-formats
+        // git log command reference : https://git-scm.com/docs/git-log
+        $gitLogFormat = implode('%n', [
+            '%H', // full commit hash
+            '%ct', // commit time (epoch)
+            '%an', // author name
+            '%ae', // author email
+        ]);
+        $command = "git log -1 --format=format:{$gitLogFormat} \"{$filePath}\"";
+        $commandOutput = [];
+        $commandResultCode = 0;
+        self::_exec($command, $commandOutput, $commandResultCode);
         return [
-            'commit_hash' => '', // TODO
-            'committed_epoch_time' => '', // TODO
-            'author_name' => '', // TODO
-            'author_email' => '', // TODO
+            'commit_hash' => $commandOutput[0] ?? '',
+            'committed_epoch_time' => $commandOutput[1] ?? '',
+            'author_name' => $commandOutput[2] ?? '',
+            'author_email' => $commandOutput[3] ?? '',
         ];
+    }
+
+    private static function _exec(string $command, array &$output, int &$result_code): void {
+        $cwd = getcwd();
+        $execResult = exec($command, $output, $result_code);
+        Log::info("OS Command executed. currentDir={$cwd}, command='".$command."', resultCode={$result_code}, output=".print_r($output, true));
+        if($execResult === false) {
+            throw new \Exception('command execution failed');
+        }
+        if($result_code != 0) {
+            throw new \Exception("non-zero status code : {$result_code}");
+        }
+    }
+
+    private static function _chdirOrFail(string $dir) {
+        $result = chdir($dir);
+        if($result === false) {
+            throw new \Exception("failed to chdir to {$dir}");
+        }
     }
 
     /**
@@ -87,7 +162,30 @@ class GitRepo
      * @return array array of full file-paths
      */
     private static function _listFilePaths(string $dir): array {
-        // TODO: implement
-        return [];
+        if(!is_dir($dir)) {
+            throw new \Exception("{$dir} is not a directory");
+        }
+        if(!is_executable($dir) || !is_readable($dir)) {
+            throw new \Exception("{$dir} is not readable");
+        }
+        $files = scandir($dir);
+        if($files === false) {
+            throw new \Exception("failed to list file of directory {$dir}");
+        }
+        $result = [];
+        foreach($files as $file) {
+            if(in_array($file, ['.', '..'], true)) {
+                continue;
+            }
+            $fullPath = $dir . DS . $file;
+            if(is_dir($fullPath)) {
+                $subFiles = self::_listFilePaths($fullPath);
+                $result = array_merge($result, $subFiles);
+            }
+            else {
+                $result[] = $fullPath;
+            }
+        }
+        return $result;
     }
 }
