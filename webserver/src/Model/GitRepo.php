@@ -15,7 +15,7 @@ class GitRepo
     const REPO_GIT_URL = 'https://github.com/cakephp/docs.git';
 
     public static function clone(): void {
-        if(file_exists(self::REPO_DIR)) {
+        if(self::isCloned()) {
             throw new \Exception('already cloned');
         }
         $cwd = getcwd();
@@ -30,6 +30,10 @@ class GitRepo
         self::_chdirOrFail($cwd);
     }
 
+    public static function isCloned(): bool {
+        return file_exists(self::REPO_DIR);
+    }
+
     public static function pull(): void {
         $cwd = getcwd();
         self::_chdirOrFail(self::REPO_DIR);
@@ -38,20 +42,6 @@ class GitRepo
         $commandResultCode = 0;
         self::_exec($command, $commandOutput, $commandResultCode);
         self::_chdirOrFail($cwd);
-    }
-
-    public static function getCurrentBranch(): string {
-        $cwd = getcwd();
-        self::_chdirOrFail(self::REPO_DIR);
-        $command = "git rev-parse --abbrev-ref HEAD";
-        $commandOutput = [];
-        $commandResultCode = 0;
-        self::_exec($command, $commandOutput, $commandResultCode);
-        self::_chdirOrFail($cwd);
-        if(count($commandOutput) <= 0) {
-            throw new \Exception('failed to get current branch');
-        }
-        return $commandOutput[0];
     }
 
     public static function checkoutBranch(string $branch): void {
@@ -64,13 +54,18 @@ class GitRepo
         self::_chdirOrFail($cwd);
     }
 
+    public static function getLatestCommit()
+    {
+        return self::_gitLog(".");
+    }
+
     /**
      * executes "git log -1" command. The caller MUST change the current directory to the repo before call this function.
      * @param string $filePath
      * @return string[]
      * @throws \Exception
      */
-    private static function _gitLog(string $filePath): array {
+    private static function _gitLog(string $relativeFilePathFromRepoRoot): array {
         // format : https://git-scm.com/docs/pretty-formats
         // git log command reference : https://git-scm.com/docs/git-log
         $gitLogFormat = implode('%n', [
@@ -79,22 +74,24 @@ class GitRepo
             '%an', // author name
             '%ae', // author email
         ]);
-        $command = "git log -1 --format=format:{$gitLogFormat} \"{$filePath}\"";
+        $command = "git log -1 --format=format:{$gitLogFormat} \"{$relativeFilePathFromRepoRoot}\"";
         $commandOutput = [];
         $commandResultCode = 0;
         self::_exec($command, $commandOutput, $commandResultCode);
         return [
-            'commit_hash' => $commandOutput[0] ?? '',
-            'committed_epoch_time' => $commandOutput[1] ?? '',
-            'author_name' => $commandOutput[2] ?? '',
-            'author_email' => $commandOutput[3] ?? '',
+            'commit_hash' => $commandOutput[0] ?? 'dummy-commit',
+            'committed_epoch_time' => (int)($commandOutput[1] ?? 0),
+            'author_name' => $commandOutput[2] ?? 'dummy author',
+            'author_email' => $commandOutput[3] ?? 'dummy email',
         ];
     }
 
-    private static function _exec(string $command, array &$output, int &$result_code): void {
+    private static function _exec(string $command, array &$output, int &$result_code, bool $withLog = true): void {
         $cwd = getcwd();
         $execResult = exec($command, $output, $result_code);
-        Log::info("OS Command executed. currentDir={$cwd}, command='".$command."', resultCode={$result_code}, output=".print_r($output, true));
+        if($withLog) {
+            Log::info("OS Command executed. currentDir={$cwd}, command='".$command."', resultCode={$result_code}, output=".print_r($output, true));
+        }
         if($execResult === false) {
             throw new \Exception('command execution failed');
         }
@@ -116,6 +113,8 @@ class GitRepo
      * @throws \Exception if unknown bug or file I/O error occurs
      */
     public static function buildTree(): array {
+        $cwd = getcwd();
+        self::_chdirOrFail(self::REPO_DIR);
         $result = [];
         $table = TableRegistry::getTableLocator()->get('files');
         if(!($table instanceof FilesTable)) {
@@ -125,6 +124,7 @@ class GitRepo
             $files = self::_buildTreeOfLang($lang, $table);
             $result = array_merge($result, $files);
         }
+        self::_chdirOrFail($cwd);
         return $result;
     }
 
@@ -139,12 +139,12 @@ class GitRepo
             throw new \Exception("unsupported language : {$lang}");
         }
         $result = [];
-        $filePaths = self::_listFilePaths(self::REPO_DIR . DS . $lang);
-        foreach($filePaths as $filePath) {
-            $gitLog = self::_gitLog($filePath);
+        $filePathsRelative = self::_listRelativeFilePaths($lang);
+        foreach($filePathsRelative as $filePathRelative) {
+            $gitLog = self::_gitLog($filePathRelative);
             $entity = $table->newEntity([
                 'lang' => $lang,
-                'filepath' => $filePath,
+                'filepath' => $filePathRelative,
                 'commit_hash' => $gitLog['commit_hash'],
                 'committed_epoch_time' => $gitLog['committed_epoch_time'],
                 'author_name' => $gitLog['author_name'],
@@ -161,29 +161,31 @@ class GitRepo
      * @param string $dir SHOULD NOT end with DS(directory separator))
      * @return array array of full file-paths
      */
-    private static function _listFilePaths(string $dir): array {
-        if(!is_dir($dir)) {
-            throw new \Exception("{$dir} is not a directory");
+    private static function _listRelativeFilePaths(string $dirRelativeFromRepoRoot): array {
+        $dirFullPath = self::REPO_DIR.DS.$dirRelativeFromRepoRoot;
+        if(!is_dir($dirFullPath)) {
+            throw new \Exception("{$dirFullPath} is not a directory");
         }
-        if(!is_executable($dir) || !is_readable($dir)) {
-            throw new \Exception("{$dir} is not readable");
+        if(!is_executable($dirFullPath) || !is_readable($dirFullPath)) {
+            throw new \Exception("{$dirFullPath} is not readable");
         }
-        $files = scandir($dir);
+        $files = scandir($dirFullPath);
         if($files === false) {
-            throw new \Exception("failed to list file of directory {$dir}");
+            throw new \Exception("failed to list file of directory {$dirFullPath}");
         }
         $result = [];
         foreach($files as $file) {
             if(in_array($file, ['.', '..'], true)) {
                 continue;
             }
-            $fullPath = $dir . DS . $file;
-            if(is_dir($fullPath)) {
-                $subFiles = self::_listFilePaths($fullPath);
+            $fileFullPath = $dirFullPath . DS . $file;
+            $fileRelativeFromRepoRoot = $dirRelativeFromRepoRoot . DS . $file;
+            if(is_dir($fileFullPath)) {
+                $subFiles = self::_listRelativeFilePaths($fileRelativeFromRepoRoot);
                 $result = array_merge($result, $subFiles);
             }
             else {
-                $result[] = $fullPath;
+                $result[] = $fileRelativeFromRepoRoot;
             }
         }
         return $result;

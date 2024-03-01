@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Model\Table;
 
+use App\Model\Entity\Scan;
 use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -87,5 +88,11 @@ class ScansTable extends Table
             ->allowEmptyString('scan_finished_epoch_time');
 
         return $validator;
+    }
+
+    public function getLatestScan(): Scan | null {
+        return $this->query()->orderBy([
+            'id' => 'DESC',
+        ])->first();
     }
 }
