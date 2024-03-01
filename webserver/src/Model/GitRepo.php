@@ -139,9 +139,9 @@ class GitRepo
             throw new \Exception("unsupported language : {$lang}");
         }
         $result = [];
-        $filePathsRelative = self::_listRelativeFilePaths($lang);
+        $filePathsRelative = self::_listRelativeFilePaths($lang, '');
         foreach($filePathsRelative as $filePathRelative) {
-            $gitLog = self::_gitLog($filePathRelative);
+            $gitLog = self::_gitLog($lang . DS . $filePathRelative);
             $entity = $table->newEntity([
                 'lang' => $lang,
                 'filepath' => $filePathRelative,
@@ -158,11 +158,13 @@ class GitRepo
 
     /**
      * list files recursively
-     * @param string $dir SHOULD NOT end with DS(directory separator))
-     * @return array array of full file-paths
+     * @param string $lang language
+     * @param string $dirRelativeFromLangRoot SHOULD NOT contain trailing DS(directory separator)
+     * @return array array of file-paths, relative from the language directory
+     * @throws \Exception
      */
-    private static function _listRelativeFilePaths(string $dirRelativeFromRepoRoot): array {
-        $dirFullPath = self::REPO_DIR.DS.$dirRelativeFromRepoRoot;
+    private static function _listRelativeFilePaths(string $lang, string $dirRelativeFromLangRoot): array {
+        $dirFullPath = self::REPO_DIR.DS.$lang.(empty($dirRelativeFromLangRoot) ? '' : (DS . $dirRelativeFromLangRoot));
         if(!is_dir($dirFullPath)) {
             throw new \Exception("{$dirFullPath} is not a directory");
         }
@@ -179,13 +181,13 @@ class GitRepo
                 continue;
             }
             $fileFullPath = $dirFullPath . DS . $file;
-            $fileRelativeFromRepoRoot = $dirRelativeFromRepoRoot . DS . $file;
+            $fileRelativeFromLangRoot = $dirRelativeFromLangRoot . DS . $file;
             if(is_dir($fileFullPath)) {
-                $subFiles = self::_listRelativeFilePaths($fileRelativeFromRepoRoot);
+                $subFiles = self::_listRelativeFilePaths($lang, $fileRelativeFromLangRoot);
                 $result = array_merge($result, $subFiles);
             }
             else {
-                $result[] = $fileRelativeFromRepoRoot;
+                $result[] = $fileRelativeFromLangRoot;
             }
         }
         return $result;

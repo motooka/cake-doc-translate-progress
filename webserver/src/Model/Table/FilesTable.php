@@ -104,4 +104,51 @@ class FilesTable extends Table
 
         return $rules;
     }
+
+    public function getTranslationStatus(string $lang): array
+    {
+        if(!in_array($lang, LANGUAGES, true) || $lang === 'en') {
+            return [];
+        }
+        $sql = <<<EOSQL
+WITH
+    english as (
+        SELECT filepath, commit_hash, committed_epoch_time
+        FROM files
+        WHERE lang = 'en'
+    ),
+    translation as (
+        SELECT filepath, commit_hash, committed_epoch_time
+        FROM files
+        WHERE lang = :language
+    )
+SELECT
+    coalesce(english.filepath, translation.filepath) as filepath,
+    english.commit_hash,
+    english.committed_epoch_time,
+    translation.commit_hash,
+    translation.committed_epoch_time
+FROM english
+    LEFT OUTER JOIN translation
+        ON translation.filepath = english.filepath
+UNION
+SELECT
+    coalesce(english.filepath, translation.filepath) as filepath,
+    english.commit_hash,
+    english.committed_epoch_time,
+    translation.commit_hash,
+    translation.committed_epoch_time
+FROM translation
+     LEFT OUTER JOIN english
+         ON translation.filepath = english.filepath
+
+ORDER BY filepath;
+EOSQL;
+        $bindings = [
+            'language' => $lang,
+        ];
+        $conn = $this->getConnection();
+        $queryResult = $conn->execute($sql, $bindings)->fetchAll('assoc');
+        return $queryResult;
+    }
 }

@@ -33,15 +33,20 @@ class MainController extends AppController
     {
         $isCloned = GitRepo::isCloned();
         $latestScan = null;
+        $statuses = [];
         if($isCloned) {
             $latestScan = $this->Scans->getLatestScan();
             if($latestScan && $latestScan->scan_finished_epoch_time !== null) {
-                $filesForView = [];
-                // TODO
-                // $files = $this->Files->
+                foreach(LANGUAGES as $lang) {
+                    if ($lang === 'en') {
+                        continue;
+                    }
+                    $statuses[$lang] = $this->Files->getTranslationStatus($lang);
+                }
             }
         }
         $this->set('latestScan', $latestScan);
+        $this->set('statuses', $statuses);
         return null;
     }
 
