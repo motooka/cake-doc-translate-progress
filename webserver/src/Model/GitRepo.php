@@ -56,7 +56,11 @@ class GitRepo
 
     public static function getLatestCommit()
     {
-        return self::_gitLog(".");
+        $cwd = getcwd();
+        self::_chdirOrFail(self::REPO_DIR);
+        $lastCommit = self::_gitLog(".");
+        self::_chdirOrFail($cwd);
+        return $lastCommit;
     }
 
     /**
