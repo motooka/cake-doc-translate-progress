@@ -19,7 +19,7 @@
     </ul>
 </fieldset>
 <fieldset>
-    <legend>diffs between en and <?= $lang ?></legend>
+    <legend>diffs between English and <?= LANGUAGE_NAMES[$lang] ?></legend>
     <table>
         <thead>
         <tr>

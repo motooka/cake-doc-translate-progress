@@ -231,4 +231,11 @@ ServerRequest::addDetector('tablet', function ($request) {
 //\Cake\I18n\FrozenTime::setToStringFormat('dd.MM.yyyy HH:mm');
 
 const LANGUAGES = ['en', 'es', 'fr', 'ja', 'pt'];
+const LANGUAGE_NAMES = [
+    'en' => 'English',
+    'es' => 'Español (Spanish)',
+    'fr' => 'Français (French)',
+    'ja' => '日本語 (Japanese)',
+    'pt' => 'Português (Portuguese)',
+];
 const BRANCHES = ['5.x', '5.next'];
