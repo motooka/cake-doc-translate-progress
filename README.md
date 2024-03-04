@@ -2,7 +2,7 @@
 
 A web application to visualize translation progress of [CakePHP/docs](https://github.com/cakephp/docs/) project.
 
-This application is deployed at [https://cake-doc-translate-progress.tmotooka.com/](https://cake-doc-translate-progress.tmotooka.com/) and `5.x` branch is scanned daily.
+This application is deployed at [https://cake-doc-translate-progress.tmotooka.com/](https://cake-doc-translate-progress.tmotooka.com/) and `5.x` branch is scanned every day at 1pm UTC.
 
 ## Technology
 - Linux / Unix server
