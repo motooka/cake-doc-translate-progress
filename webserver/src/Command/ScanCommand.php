@@ -24,8 +24,8 @@ class ScanCommand extends Command
         $branch = '5.x';
 
         // TODO: do type-safe programming
-        $this->Files = TableRegistry::getTableLocator()->get('files');
-        $this->Scans = TableRegistry::getTableLocator()->get('scans');
+        $this->Files = TableRegistry::getTableLocator()->get('Files');
+        $this->Scans = TableRegistry::getTableLocator()->get('Scans');
 
         $conn = $this->Scans->getConnection();
 

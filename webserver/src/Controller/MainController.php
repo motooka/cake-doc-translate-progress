@@ -23,8 +23,8 @@ class MainController extends AppController
         parent::beforeFilter($event);
 
         // TODO: do type-safe programming
-        $this->Files = TableRegistry::getTableLocator()->get('files');
-        $this->Scans = TableRegistry::getTableLocator()->get('scans');
+        $this->Files = TableRegistry::getTableLocator()->get('Files');
+        $this->Scans = TableRegistry::getTableLocator()->get('Scans');
     }
 
     public function index(string $lang = null): Response | null
