@@ -51,7 +51,14 @@ $cakeDescription = 'CakePHP: the rapid development php framework';
                 }
                 ?>
                 <li>
-                    <?= $this->Html->link($lang, '/'.$lang) ?>
+                    <?php
+                    if(str_ends_with($this->request->getUri(), '/'.$lang)) {
+                        echo '<b>'.LANGUAGE_NAMES[$lang].'</b>';
+                    }
+                    else {
+                        echo $this->Html->link(LANGUAGE_NAMES[$lang], '/'.$lang);
+                    }
+                    ?>
                 </li>
                 <?php
             }
