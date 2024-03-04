@@ -2,6 +2,8 @@
 
 A web application to visualize translation progress of [CakePHP/docs](https://github.com/cakephp/docs/) project.
 
+This application is deployed at [https://cake-doc-translate-progress.tmotooka.com/](https://cake-doc-translate-progress.tmotooka.com/) and `5.x` branch is scanned daily.
+
 ## Technology
 - Linux / Unix server
 	- Since this application executes some `git` commands, it might not work on Windows. Use WSL or Docker on Windows.
