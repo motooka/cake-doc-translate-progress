@@ -27,6 +27,8 @@ class ScanCommand extends Command
         $this->Files = TableRegistry::getTableLocator()->get('Files');
         $this->Scans = TableRegistry::getTableLocator()->get('Scans');
 
+        $this->log("Going to scan the branch {$branch}", LOG_INFO);
+
         $conn = $this->Scans->getConnection();
 
         // transaction 1 : start new scan
@@ -106,6 +108,7 @@ class ScanCommand extends Command
         }
 
         $io->out('scanned successfully');
+        $this->log("Scanned {$branch} successfully", LOG_INFO);
         return static::CODE_SUCCESS;
     }
 }
