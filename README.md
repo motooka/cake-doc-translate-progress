@@ -22,3 +22,7 @@ This repository provides [Dockerfile](./Dockerfile).
 	- if you can't wait 10 seconds, you can also use `kill`
 - To use shell, run `docker run --rm -it -v $(pwd)/:/repository motooka/cake-doc-translate-progress bash`
 - To install package updates and run database(SQLite3) migration after set up, run `docker run --rm -it -v $(pwd)/:/repository motooka/cake-doc-translate-progress /composer-install.sh`
+
+## License
+MIT License.
+See [LICENSE.txt](./LICENSE.txt) for more details.
