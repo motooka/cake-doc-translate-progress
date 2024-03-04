@@ -81,7 +81,7 @@ class GitRepo
         $command = "git log -1 --format=format:{$gitLogFormat} \"{$relativeFilePathFromRepoRoot}\"";
         $commandOutput = [];
         $commandResultCode = 0;
-        self::_exec($command, $commandOutput, $commandResultCode);
+        self::_exec($command, $commandOutput, $commandResultCode, false);
         return [
             'commit_hash' => $commandOutput[0] ?? 'dummy-commit',
             'committed_epoch_time' => (int)($commandOutput[1] ?? 0),
