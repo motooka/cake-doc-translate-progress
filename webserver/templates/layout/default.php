@@ -17,7 +17,7 @@
 $cakeDescription = 'CakePHP: the rapid development php framework';
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <?= $this->Html->charset() ?>
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -27,7 +27,7 @@ $cakeDescription = 'CakePHP: the rapid development php framework';
     </title>
     <?= $this->Html->meta('icon') ?>
 
-    <?= $this->Html->css(['normalize.min', 'milligram.min', 'fonts', 'cake']) ?>
+    <?= $this->Html->css(['normalize.min', 'milligram.min', 'cake', 'app']) ?>
 
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
@@ -36,12 +36,27 @@ $cakeDescription = 'CakePHP: the rapid development php framework';
 <body>
     <nav class="top-nav">
         <div class="top-nav-title">
-            <a href="<?= $this->Url->build('/') ?>"><span>Cake</span>PHP</a>
+            <a href="<?= $this->Url->build('/') ?>">CakePHP Docs Translation Progress</a>
         </div>
         <div class="top-nav-links">
-            <a target="_blank" rel="noopener" href="https://book.cakephp.org/5/">Documentation</a>
-            <a target="_blank" rel="noopener" href="https://api.cakephp.org/">API</a>
+            <a target="_blank" rel="noopener" href="https://github.com/motooka/cake-doc-translate-progress/">Source Code on GitHub</a>
         </div>
+    </nav>
+    <nav class="lang-nav">
+        <ul>
+            <?php
+            foreach(LANGUAGES as $lang) {
+                if($lang === 'en') {
+                    continue;
+                }
+                ?>
+                <li>
+                    <?= $this->Html->link($lang, '/'.$lang) ?>
+                </li>
+                <?php
+            }
+            ?>
+        </ul>
     </nav>
     <main class="main">
         <div class="container">
@@ -50,6 +65,7 @@ $cakeDescription = 'CakePHP: the rapid development php framework';
         </div>
     </main>
     <footer>
+        Copyright &copy; T. MOTOOKA
     </footer>
 </body>
 </html>

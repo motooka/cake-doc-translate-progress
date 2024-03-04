@@ -124,10 +124,10 @@ WITH
     )
 SELECT
     coalesce(english.filepath, translation.filepath) as filepath,
-    english.commit_hash,
-    english.committed_epoch_time,
-    translation.commit_hash,
-    translation.committed_epoch_time
+    english.commit_hash as en_commit_hash,
+    english.committed_epoch_time as en_committed_epoch_time,
+    translation.commit_hash as trans_commit_hash,
+    translation.committed_epoch_time as trans_committed_epoch_time
 FROM english
     LEFT OUTER JOIN translation
         ON translation.filepath = english.filepath

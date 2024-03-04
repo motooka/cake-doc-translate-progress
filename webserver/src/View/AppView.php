@@ -15,6 +15,7 @@ declare(strict_types=1);
  */
 namespace App\View;
 
+use App\View\Helper\CommitHelper;
 use Cake\View\View;
 
 /**
@@ -26,6 +27,9 @@ use Cake\View\View;
  */
 class AppView extends View
 {
+    // if we activate this line, IDE will help us, but we get an error at runtime : "Typed property App\View\AppView::$Commit must not be accessed before initialization"
+    // public CommitHelper $Commit;
+
     /**
      * Initialization hook method.
      *
@@ -33,9 +37,12 @@ class AppView extends View
      *
      * e.g. `$this->addHelper('Html');`
      *
+     * @property CommitHelper $Commit
      * @return void
      */
     public function initialize(): void
     {
+        parent::initialize();
+        $this->addHelper('Commit');
     }
 }

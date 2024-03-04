@@ -1,0 +1,28 @@
+nav.lang-nav {
+    max-width: 112rem;
+    padding: 0 2rem;
+    margin: 0 auto 1rem auto;
+}
+nav.lang-nav > ul {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2em;
+    list-style: none;
+    margin: 0;
+}
+nav.lang-nav > ul > li {
+    display: inline-block;
+}
+
+footer {
+    max-width: 112rem;
+    margin: 0 auto 1rem auto;
+    text-align: center;
+    color: #a0a0a0;
+}
+
+h2 {
+    margin-top: 4rem;
+    margin-bottom: 1rem;
+}
