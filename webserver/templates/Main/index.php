@@ -20,6 +20,11 @@
 </fieldset>
 <fieldset>
     <legend>diffs between English and <?= LANGUAGE_NAMES[$lang] ?></legend>
+    <div style="text-align: right;">
+        <?php
+        echo $this->Html->link('Download as CSV', ['action'=>'download', $lang]);
+        ?>
+    </div>
     <table>
         <thead>
         <tr>
